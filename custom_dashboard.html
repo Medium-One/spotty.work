@@ -1,0 +1,231 @@
+<style>
+  .easypie-chart {
+    display: inline-block;
+    position: relative;
+    padding: 0 6px;
+  }
+
+  tbody>tr {
+    cursor: pointer;
+  }
+
+  .labels {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-48%, -14%);
+    font-size: 26px;
+  }
+</style>
+<div class="wrapper wrapper-content animated fadeInRight">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="ibox-content">
+        <div ng-controller="M1DashboardController as devices" class="container-fluid ng-scope">
+
+          <div class="row">
+            <div ng-class="devices.selected_device ? 'col-lg-12 col-md-12' : 'col-lg-12 col-md-12'" ng-show="!devices.selected_device">
+              <style>
+                h4 {
+                  display: inline-block;
+                }
+              </style>
+              <div>
+                <input type="image" src="app/img/refresh.png" alt="Refresh" style="float:right; margin-right:5px" ng-click="devices.refreshTable();">
+              </div>
+              <div class="" style="overflow-x:auto">
+
+                <!-- Loading... lable -->
+                <div id="main_loading" style="text-align:center;">
+                  <h4 class="m0 text-thin ng-binding" ng-style="devices.load_msg == 'Loading...' ? '' : {'color' : 'red'}">{{devices.load_msg}}</h4>
+                </div>
+                <!-- List of Devices -->
+                <div id="table_wrap" style="margin-top: 24px; opacity:1;">
+                  <h5 ng-if="num_available" align="center">There is currently {{num_available}} room(s) out of {{total_rows}} available</h5>
+                  <h5 ng-if="!num_available" align="center">You have no registered devices</h5>
+                  <table class="table table-striped table-hover" dt-instance="devices.table.dtInstance" style="margin-top:24px;" datatable="ng"
+                    dt-options="devices.table.dtOptions" ng-init="devices.setTableKeys(['processed.room_name','device_id','processed.occupied','raw.temp1.value','raw.humidity.max','raw.pressure.max'])">
+                    <thead>
+                      <tr>
+                        <th ng-class="devices.table.header.class">Room Name</th>
+                        <th ng-class="devices.table.header.class">Device ID</th>
+                        <th ng-class="devices.table.header.class">Availability</th>
+                        <th ng-class="devices.table.header.class">Temperature</th>
+                        <th ng-class="devices.table.header.class">Humidity</th>
+                        <th ng-class="devices.table.header.class">Pressure</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <tr ng-repeat="row in devices.table.data" ng-click="devices.select_device($index);">
+
+                        <td ng-repeat="datum in row" class="va-middle" ng-if="$parent.$index === devices.cur_idx" style="background-color: lightblue !important;">
+                          <span>{{datum.value}}</span>
+                        </td>
+
+                        <td ng-repeat="datum in row" class="va-middle" ng-if="$parent.$index !== devices.cur_idx" style="color: {{datum.occupied_tag == true ? (datum.occupied  == 1 ? 'red' : (datum.occupied == 0 ? 'green' : 'black')) : 'black'}}">
+
+                          <span>{{datum.value}}</span>
+                        </td>
+
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!-- close table_wrap -->
+              </div>
+              <!-- close card -->
+            </div>
+            <!-- close device list -->
+
+
+
+            <!-- device segment -->
+            <div class="ibox" style="margin-top:31px;">
+
+              <div id="device_details" class="col-lg-12 col-md-12" ng-if="devices.selected_device">
+                <div class="ibox-content" style="margin-top:31px;">
+                  <img src="app/img/icon-close-128.png" width="42" id="question" ng-click="devices.selected_device=false" style="position:absolute; right:0px; padding:7px;"
+                  />
+
+                  <div class="" style="text-align: center;">
+                    <span style="font-weight:bold;">Device</span>: {{devices.selected_device.device_id}}
+                    <br>
+                    <br>
+                    <br>
+                    <span style="">Note: this page will stop auto refresh after a few minutes</span>
+
+                  </div>
+
+                  <!-- Spinner bar, js will disable once data first loads -->
+                  <div id="loading_spinner" style="text-align:center; opacity:1;">
+                    <img src="app/img/loading-spinner.gif" alt="Loading" />
+                    <br/>LOADING...
+                    <br/>
+                  </div>
+
+
+                  <div class="col-lg-12 " style="opacity:0" id="buttons">
+                    <div class="row" style="margin-top:50px;">
+                      <div class="col-lg-8 col-lg-offset-2">
+                        <div class="col-lg-5" style="text-align:right">
+                          <img src="http://spotty.work/img/conference-room-1.png">
+                        </div>
+                        <div class="col-lg-7" style="text-align:center">
+                          <div class="row">
+
+                            <input ng-show="edit_flag" type="text" id="textbox1" style="font-size: 20px;padding:5px 5px;margin-top:5px;color:black;background-color:white;"
+                              ng-init="devices.addLvArray('processed.room_name')" placeholder="{{devices.lvLookupID['processed.room_name']}}">
+                            <font size="6" ng-hide="edit_flag" ng-init="devices.addLvArray('processed.room_name')">{{devices.lvLookupID['processed.room_name']}}</font>
+                            <input ng-click="edit_flag=!edit_flag" ng-hide="edit_flag" type="button" value="Edit" />
+                          </div>
+                          <input ng-show="edit_flag" type="button" value="Save" ng-click="devices.sendTextbox('processed.room_name','textbox1');edit_flag=!edit_flag;devices.sendTextbox('processed.room_name','textbox1');"
+                          />
+                          <input ng-click="edit_flag=!edit_flag" ng-show="edit_flag" type="button" value="Cancel" />
+
+
+                          <br>
+                          <br>
+
+                          <font size="4" ng-init="devices.addLvArray('processed.occupied')">
+                            <svg height="24" width="24">
+                              <circle cx="12" cy="12" r="9" stroke="grey" stroke-width="1" style="fill: {{devices.lvLookupID['processed.occupied'] == 0 ? '#7CDB39' : (devices.lvLookupID['processed.occupied'] == 1 ? '#E50000' : '#D3D3D3')}}"
+                              />
+                            </svg> {{devices.lvLookupID['processed.occupied'] == 0 ? "Vacant" : (devices.lvLookupID['processed.occupied']
+                            == 1 ? "Occupied" : "Board Offline")}}</font>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row" style="margin-top:100px;text-align:center">
+                      <div class="col-lg-12">
+                        <div class="row">
+                          <div class="col-lg-6">
+                            <div class="row">
+                              <h5>Comfort Level</h5>
+                              <br>
+                              <br>
+                            </div>
+                            <div class="row" style="">
+                              <div class="col-lg-6">
+                                <div easypiechart="" ng-init="devices.addLvArray('raw.temp1.max')" options="{'barColor':'#00BCD4','trackColor':'#ECEFF1','scaleColor':false,'scaleLength':5,'lineCap':'circle','lineWidth':10,'size':110,'rotate':0,'animate':false}"
+                                  percent="devices.lvLookupID['raw.temp1.max']" class="easypie-chart">
+                                </div>
+                                <div class="labels">{{devices.lvLookupID['raw.temp1.max']}}
+                                  <br>
+                                  <br />Temperature
+                                  <br>
+                                  <font size=2>[°C]</font>
+                                </div>
+                              </div>
+                              <div class="col-lg-6">
+                                <div easypiechart="" style="" ng-init="devices.addLvArray('raw.humidity.max')" options="{'barColor':'#c2185b','trackColor':'#ECEFF1','scaleColor':false,'scaleLength':5,'lineCap':'circle','lineWidth':10,'size':110,'rotate':0,'animate':false}"
+                                  percent="devices.lvLookupID['raw.humidity.max']" class="easypie-chart">
+                                </div>
+                                <div class="labels">{{devices.lvLookupID['raw.humidity.max']}}
+                                  <br>
+                                  <br />Humidity
+                                  <br>
+                                  <font size=2>[%]</font>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="row" style="margin-top:90px;">
+                              <div class="col-lg-6">
+                                <div easypiechart="" ng-init="devices.addLvArray('raw.pressure.max')" options="{'barColor':'#7e57c2','trackColor':'#ECEFF1','scaleColor':false,'scaleLength':5,'lineCap':'circle','lineWidth':10,'size':110,'rotate':0,'animate':false}"
+                                  percent="devices.lvLookupID['raw.pressure.max']/20" class="easypie-chart">
+                                </div>
+                                <div class="labels">{{devices.lvLookupID['raw.pressure.max']}}
+                                  <br>
+                                  <br />Pressure
+                                  <br>
+                                  <font size=2>[mbar]</font>
+                                </div>
+                              </div>
+                              <div class="col-lg-6">
+                                <div easypiechart="" style="" ng-init="devices.addLvArray('raw.mic.max')" options="{'barColor':'#CDDC39','trackColor':'#ECEFF1','scaleColor':false,'scaleLength':5,'lineCap':'circle','lineWidth':10,'size':110,'rotate':0,'animate':false}"
+                                  percent="devices.lvLookupID['raw.mic.max']/5" class="easypie-chart">
+                                </div>
+                                <div class="labels">{{devices.lvLookupID['raw.mic.max']}}
+                                  <br>
+                                  <br />Noise
+                                  <br>
+                                  <font size=2>[relative]</font>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-lg-6">
+                            <h5>Room Activity</h5>
+                            <br>
+                            <flot ng-init="devices.addGraphArray(['processed.activity'],['Activity'],['#FF7F50'])" dataset="devices.graphResponseArray[0]"
+                              options="devices.graphLineOptions" class="flot-chart flot-chart-lg"></flot>
+                            <br>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="row">
+
+                  </div>
+
+
+                  <!-- this section adds a map-->
+                  <div class="row" style="padding:50px; text-align:center; opacity:0;" id="maps">
+
+
+                  </div>
+
+                </div>
+                <!-- end graphs -->
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
