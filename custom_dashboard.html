@@ -41,8 +41,8 @@
                 </div>
                 <!-- List of Devices -->
                 <div id="table_wrap" style="margin-top: 24px; opacity:1;">
-                  <h5 ng-if="num_available" align="center">There is currently {{num_available}} room(s) out of {{total_rows}} available</h5>
-                  <h5 ng-if="!num_available" align="center">You have no registered devices</h5>
+                  <h5 ng-if="total_rows" align="center">There is currently {{num_available}} room(s) out of {{total_rows}} available</h5>
+                  <h5 ng-if="!total_rows" align="center">You have no registered devices</h5>
                   <table class="table table-striped table-hover" dt-instance="devices.table.dtInstance" style="margin-top:24px;" datatable="ng"
                     dt-options="devices.table.dtOptions" ng-init="devices.setTableKeys(['processed.room_name','device_id','processed.occupied','raw.temp1.value','raw.humidity.max','raw.pressure.max'])">
                     <thead>
